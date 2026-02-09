@@ -15,10 +15,9 @@ pub struct CaretPosition {
 pub fn get_caret_position() -> CaretPosition {
     use windows::Win32::Foundation::POINT;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GetCaretPos, GetForegroundWindow, GetWindowThreadProcessId,
+        GetCaretPos, GetForegroundWindow, GetWindowThreadProcessId, GetFocus,
     };
-    use windows::Win32::System::Threading::GetCurrentThreadId;
-    use windows::Win32::UI::Input::KeyboardAndMouse::{AttachThreadInput, GetFocus};
+    use windows::Win32::System::Threading::{GetCurrentThreadId, AttachThreadInput};
     use windows::Win32::Graphics::Gdi::ClientToScreen;
 
     unsafe {
