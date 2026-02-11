@@ -33,11 +33,11 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          GIT_DESC=$(git describe --long --tags --always --dirty | sed 's/-g/-/')
-          BUILD_TIME=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')
+          GIT_DESC=$(git describe --long --tags --always --dirty | sed 's/-g/-/' | sed 's/-plus/_Plus/')
+          BUILD_TIME=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M UTC+8')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "git_desc=$GIT_DESC" >> $GITHUB_OUTPUT
-          echo "build_time=$BUILD_TIME (Beijing Time)" >> $GITHUB_OUTPUT
+          echo "build_time=$BUILD_TIME" >> $GITHUB_OUTPUT
           echo "file_prefix=EcoPaste_${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Install pnpm
@@ -83,6 +83,7 @@ jobs:
         shell: bash
         env:
           HUSKY: '0'
+          REPO: ${{ github.repository }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
@@ -96,7 +97,8 @@ jobs:
             let content = buf.toString('utf8');
             const hasCRLF = content.includes('\r\n');
             const v = '${VERSION}';
-            const newLink = '最新版本: [EcoPaste_' + v + '](https://github.com/EcoPasteHub/EcoPaste/releases/download/v' + v + '/EcoPaste_' + v + '_x64-setup.exe)';
+            const repo = process.env.REPO;
+            const newLink = '最新版本: [EcoPaste_' + v + '](https://github.com/' + repo + '/releases/download/v' + v + '/EcoPaste_' + v + '_x64-setup.exe)';
             content = content.replace(/^最新版本: .*/m, newLink);
             if (hasCRLF) content = content.replace(/(?<!\r)\n/g, '\r\n');
             fs.writeFileSync('README.md', content);
@@ -117,25 +119,24 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: "v${{ steps.version.outputs.version }}"
+          name: "EcoPaste_v${{ steps.version.outputs.version }}"
           body: |
             ## EcoPaste Plus 增强版
             
             基于官方 EcoPaste 的增强 Fork 版本，包含以下改进：
             
             ### ✨ 增强功能
-            - **文本显示行数可配置**：可设置纯文本、富文本、HTML 内容的显示行数（1-20 行），富文本/HTML 使用 max-height 可靠截断
+            - **文本显示行数可配置**：可设置纯文本、富文本、HTML 内容的显示行数（1-20 行）
             - **图片显示高度可配置**：可设置图片预览的最大高度（50-500px）
-            - **展开/收起功能**：内容超出显示范围时可展开查看完整内容，状态不受虚拟滚动影响；图片仅在超高且未布满容器宽度时显示展开按钮
+            - **展开/收起功能**：内容超出显示范围时可展开查看完整内容，图片仅在超高且未布满容器宽度时显示展开按钮
             - **默认收起**：可配置激活窗口时自动收起所有已展开的内容
             - **窗口跟随光标位置**（Windows）：窗口可跟随输入光标位置显示
-            - **不夺焦窗口体验**（Windows）：呼出窗口时原应用保持焦点，体验与 Win+V 一致，点选条目直接粘贴；点击窗口外部自动隐藏
+            - **不夺焦窗口体验**（Windows）：呼出窗口时原应用保持焦点，体验与 Win+V 一致，双击条目直接粘贴；点击窗口外部自动隐藏
             - **偏好设置分组优化**：新增「显示设置」分组，合理归类显示相关配置项
             
             ### 🐛 原版修复
             - **剪贴板内容类型判断**：修复复制图片时可能被错误识别为文件或HTML类型的问题
-            - **数据备份入口**：确保数据备份与恢复功能正常可用
-            - **富文本/HTML 显示截断**：修复 -webkit-line-clamp 对块级元素截断无效的问题
+            - **数据备份入口**：显示数据备份功能入口，确保数据备份与恢复功能正常可用
             
             ### 📋 版本信息
             - **版本**: ${{ steps.version.outputs.version }}
